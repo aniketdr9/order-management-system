@@ -7,6 +7,7 @@ import com.aniket.ordermanagement.entity.OrderItem;
 import com.aniket.ordermanagement.entity.Product;
 import com.aniket.ordermanagement.entity.User;
 import com.aniket.ordermanagement.enums.OrderStatus;
+import com.aniket.ordermanagement.exception.InsufficientStockException;
 import com.aniket.ordermanagement.exception.ResourceNotFoundException;
 import com.aniket.ordermanagement.repository.OrderRepository;
 import com.aniket.ordermanagement.repository.ProductRepository;
@@ -42,7 +43,7 @@ public class OrderService {
 
             //Stock Check
             if(product.getStock() < itemDto.getQuantity()) {
-                throw new RuntimeException("Insufficient stock for product: " +product.getName());
+                throw new InsufficientStockException("Insufficient stock for product: " + product.getName());
             }
 
             //Update Stock
