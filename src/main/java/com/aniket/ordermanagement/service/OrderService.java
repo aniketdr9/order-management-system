@@ -1,5 +1,6 @@
 package com.aniket.ordermanagement.service;
 
+import com.aniket.ordermanagement.dto.OrderCreateEvent;
 import com.aniket.ordermanagement.dto.OrderItemDto;
 import com.aniket.ordermanagement.dto.OrderRequestDto;
 import com.aniket.ordermanagement.entity.Order;
@@ -9,6 +10,7 @@ import com.aniket.ordermanagement.entity.User;
 import com.aniket.ordermanagement.enums.OrderStatus;
 import com.aniket.ordermanagement.exception.InsufficientStockException;
 import com.aniket.ordermanagement.exception.ResourceNotFoundException;
+import com.aniket.ordermanagement.kafka.OrderProducer;
 import com.aniket.ordermanagement.repository.OrderRepository;
 import com.aniket.ordermanagement.repository.ProductRepository;
 import com.aniket.ordermanagement.repository.UserRepository;
@@ -26,17 +28,20 @@ public class OrderService {
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
     private final OrderRepository orderRepository;
+    private final OrderProducer orderProducer;
 
     @Transactional
     public Order createOrder(OrderRequestDto dto){
         User user = userRepository.findById(dto.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        BigDecimal totalAmount = BigDecimal.ZERO;
-        Order order = new Order();
 
+        BigDecimal totalAmount = BigDecimal.ZERO;
+
+        Order order = new Order();
         order.setUser(user);
 
         List<OrderItem> orderItems = new ArrayList<>();
+
         for (OrderItemDto itemDto: dto.getItems()){
             Product product = productRepository.findById(itemDto.getProductId())
                     .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
@@ -66,6 +71,19 @@ public class OrderService {
         order.setTotalAmount(totalAmount);
         order.setStatus(OrderStatus.CREATED);
 
-        return orderRepository.save(order);
+        Order savedOrder = orderRepository.save(order);
+
+        OrderCreateEvent event = new OrderCreateEvent();
+
+        event.setOrderId(savedOrder.getId());
+        event.setUserId(user.getId());
+        event.setTotalAmount(savedOrder.getTotalAmount());
+
+        orderProducer.sendOrderCreatedEvent(event);
+        return savedOrder;
+    }
+
+    public List<Order> getAllOrders() {
+        return orderRepository.findAll();
     }
 }
