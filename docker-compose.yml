@@ -29,6 +29,6 @@ services:
     container_name: mysql
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: order_management
+      MYSQL_DATABASE: order_db
     ports:
       - "3306:3306"
