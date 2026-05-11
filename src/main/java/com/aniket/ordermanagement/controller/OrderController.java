@@ -4,6 +4,7 @@ import com.aniket.ordermanagement.dto.OrderRequestDto;
 import com.aniket.ordermanagement.entity.Order;
 import com.aniket.ordermanagement.service.OrderService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,5 +23,10 @@ public class OrderController {
     @GetMapping
     public List<Order> getAllOrders() {
         return orderService.getAllOrders();
+    }
+
+    @GetMapping("{/id")
+    public ResponseEntity<Order> getOrderById(@PathVariable Long id){
+        return ResponseEntity.ok(orderService.getOrderById(id));
     }
 }

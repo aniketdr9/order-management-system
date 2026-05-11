@@ -15,6 +15,8 @@ import com.aniket.ordermanagement.repository.OrderRepository;
 import com.aniket.ordermanagement.repository.ProductRepository;
 import com.aniket.ordermanagement.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -85,5 +87,25 @@ public class OrderService {
 
     public List<Order> getAllOrders() {
         return orderRepository.findAll();
+    }
+
+    public Order getOrderById(Long orderId) {
+        Order order =  orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        String loggedInEmail = authentication.getName();
+
+        User loggedInUser = userRepository.findByEmail(loggedInEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        boolean isAdmin = loggedInUser.getRole().equals("ROLE_ADMIN");
+
+        boolean isOwner = order.getUser().getId().equals(loggedInUser.getId());
+
+        if(!isAdmin && !isOwner){
+            throw new RuntimeException("Access Denied.");
+        }
     }
 }
