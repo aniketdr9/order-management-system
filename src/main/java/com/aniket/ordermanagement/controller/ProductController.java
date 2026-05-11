@@ -5,6 +5,7 @@ import com.aniket.ordermanagement.entity.Product;
 import com.aniket.ordermanagement.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,6 +17,7 @@ public class ProductController {
     private final ProductService productService;
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public Product createProduct(@Valid @RequestBody ProductRequestDto request){
         return productService.createProduct(request);
     }

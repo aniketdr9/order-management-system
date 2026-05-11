@@ -2,6 +2,7 @@ package com.aniket.ordermanagement.service;
 
 import com.aniket.ordermanagement.dto.UserRequestDto;
 import com.aniket.ordermanagement.entity.User;
+import com.aniket.ordermanagement.enums.Role;
 import com.aniket.ordermanagement.exception.ResourceAlreadyExistsException;
 import com.aniket.ordermanagement.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ public class UserService {
                 .name(dto.getName())
                 .email(dto.getEmail())
                 .password(bCryptPasswordEncoder.encode(dto.getPassword()))
+                .role(Role.ROLE_USER)
                 .build();
         return userRepository.save(user);
     }
