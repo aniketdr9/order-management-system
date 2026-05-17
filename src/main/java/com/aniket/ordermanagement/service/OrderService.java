@@ -107,5 +107,6 @@ public class OrderService {
         if(!isAdmin && !isOwner){
             throw new RuntimeException("Access Denied.");
         }
+        return order;
     }
 }

@@ -25,7 +25,7 @@ public class OrderController {
         return orderService.getAllOrders();
     }
 
-    @GetMapping("{/id")
+    @GetMapping("/{id}")
     public ResponseEntity<Order> getOrderById(@PathVariable Long id){
         return ResponseEntity.ok(orderService.getOrderById(id));
     }
