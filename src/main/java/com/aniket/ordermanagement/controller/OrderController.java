@@ -1,5 +1,6 @@
 package com.aniket.ordermanagement.controller;
 
+import com.aniket.ordermanagement.dto.ApiResponse;
 import com.aniket.ordermanagement.dto.OrderRequestDto;
 import com.aniket.ordermanagement.dto.OrderResponseDto;
 import com.aniket.ordermanagement.entity.Order;
@@ -21,17 +22,28 @@ public class OrderController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<OrderResponseDto>> getAllOrders(
+    public ResponseEntity<ApiResponse<Page<OrderResponseDto>>> getAllOrders(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size
     ) {
         return ResponseEntity.ok(
-                orderService.getAllOrders(page, size)
+                ApiResponse.<Page<OrderResponseDto>>builder()
+                        .success(true)
+                        .message("Orders fetched successfully")
+                        .data(orderService.getAllOrders(page, size))
+                        .build()
+
         );
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<OrderResponseDto> getOrderById(@PathVariable Long id){
-        return ResponseEntity.ok(orderService.getOrderById(id));
+    public ResponseEntity<ApiResponse<OrderResponseDto>> getOrderById(@PathVariable Long id){
+        return ResponseEntity.ok(
+                ApiResponse.<OrderResponseDto>builder()
+                        .success(true)
+                        .message("Order fetched successfully")
+                        .data(orderService.getOrderById(id))
+                        .build()
+        );
     }
 }
