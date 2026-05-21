@@ -1,8 +1,6 @@
 package com.aniket.ordermanagement.service;
 
-import com.aniket.ordermanagement.dto.OrderCreateEvent;
-import com.aniket.ordermanagement.dto.OrderItemDto;
-import com.aniket.ordermanagement.dto.OrderRequestDto;
+import com.aniket.ordermanagement.dto.*;
 import com.aniket.ordermanagement.entity.Order;
 import com.aniket.ordermanagement.entity.OrderItem;
 import com.aniket.ordermanagement.entity.Product;
@@ -15,6 +13,9 @@ import com.aniket.ordermanagement.repository.OrderRepository;
 import com.aniket.ordermanagement.repository.ProductRepository;
 import com.aniket.ordermanagement.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -85,11 +86,13 @@ public class OrderService {
         return savedOrder;
     }
 
-    public List<Order> getAllOrders() {
-        return orderRepository.findAll();
+    public Page<OrderResponseDto> getAllOrders(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return orderRepository.findAll(pageable)
+                .map(this::mapToDto);
     }
 
-    public Order getOrderById(Long orderId) {
+    public OrderResponseDto getOrderById(Long orderId) {
         Order order =  orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
 
@@ -107,6 +110,28 @@ public class OrderService {
         if(!isAdmin && !isOwner){
             throw new RuntimeException("Access Denied.");
         }
-        return order;
+        return mapToDto(order);
+    }
+
+    private OrderResponseDto mapToDto(Order order){
+        List<OrderItemResponseDto> itemDtos =
+                order.getItems()
+                .stream()
+                        .map(item -> OrderItemResponseDto.builder()
+                                .productId(item.getProduct().getId())
+                                .productName(item.getProduct().getName())
+                                .quantity(item.getQuantity())
+                                .price(item.getPrice())
+                                .build())
+                        .toList();
+        return OrderResponseDto.builder()
+                .orderId(order.getId())
+                .userId(order.getUser().getId())
+                .userName(order.getUser().getName())
+                .totalAmount(order.getTotalAmount())
+                .status(order.getStatus())
+                .createdAt(order.getCreatedAt())
+                .items(itemDtos)
+                .build();
     }
 }
